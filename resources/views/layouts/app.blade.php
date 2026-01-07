@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,24 +15,45 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        body { font-family: 'Rajdhani', sans-serif; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+        }
     </style>
 </head>
+
 <body class="antialiased bg-[#0f111a]">
     <div class="min-h-screen">
         @include('layouts.navigation')
 
         @isset($header)
-            <header class="bg-[#1a1d2e] border-b border-gray-800 shadow-lg">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
+        <header class="bg-[#1a1d2e] border-b border-gray-800 shadow-lg">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                {{ $header }}
+            </div>
+        </header>
         @endisset
 
         <main>
             {{ $slot }}
         </main>
     </div>
+
+    <script>
+        function buscarJogosPelaNav() {
+            const navInput = document.getElementById('navGameQuery');
+            const query = navInput.value.trim();
+
+            // Se o campo estiver vazio, não faz nada
+            if (query.length === 0) return;
+
+            /**
+             * REDIRECIONAMENTO ESTRATÉGICO:
+             * Nós enviamos o usuário para a rota 'catalogo' 
+             * passando o termo de busca na URL (?search=nome-do-jogo)
+             */
+            window.location.href = "{{ route('catalogo') }}?search=" + encodeURIComponent(query);
+        }
+    </script>
 </body>
+
 </html>

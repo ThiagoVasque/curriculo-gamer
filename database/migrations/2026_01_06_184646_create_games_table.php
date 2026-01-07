@@ -14,11 +14,16 @@ return new class extends Migration
             $table->string('igdb_id'); 
             $table->string('title');
             $table->string('cover_url')->nullable();
-            $table->enum('status', ['zerado', 'quero_jogar', 'favorito']);
-            $table->integer('rating')->nullable(); // Nota de 0 a 10
-            $table->integer('year_completed')->nullable(); // Ano que zerou
-            $table->integer('hltb_hours')->nullable(); // Tempo do HowLongToBeat
-            $table->text('review')->nullable(); // Review pessoal
+            
+            // Atualizado: Incluindo 'Desejado' e 'jogando' para evitar o erro de truncamento
+            $table->enum('status', ['zerado', 'quero_jogar', 'favorito', 'jogando', 'Desejado'])->default('Desejado');
+            
+            $table->integer('rating')->nullable();
+            $table->integer('year_completed')->nullable();
+            $table->string('developer')->nullable(); // Campo para o estúdio do jogo
+            $table->integer('release_year')->nullable(); // Ano de lançamento vindo da IGDB
+            $table->text('summary')->nullable(); // Descrição do jogo
+            $table->text('review')->nullable();
             $table->timestamps();
         });
     }

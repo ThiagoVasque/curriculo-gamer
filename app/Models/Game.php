@@ -11,15 +11,16 @@ class Game extends Model
 
     // Campos que o Laravel permite salvar no banco
     protected $fillable = [
-        'user_id',
-        'igdb_id',
         'title',
+        'igdb_id',
         'cover_url',
         'status',
         'rating',
-        'year_completed',
-        'hltb_hours',
-        'review'
+        'summary',
+        'developer',
+        'release_year',
+        'review', 
+        'user_id'
     ];
 
     // Relacionamento: Um jogo pertence a um usuário

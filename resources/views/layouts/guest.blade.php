@@ -18,7 +18,7 @@
             <div class="mb-8 transform hover:scale-105 transition-transform duration-300">
                 <a href="/">
                     <span class="text-4xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]">
-                        GAMER<span class="text-indigo-500">CV</span>
+                        Currículo<span class="text-indigo-500">Gamer</span>
                     </span>
                 </a>
             </div>
