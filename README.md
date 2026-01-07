@@ -23,4 +23,4 @@ Este projeto utiliza o ecossistema Laravel para o backend e Tailwind CSS para a 
 * **Autenticação:** Laravel Breeze (Customizado)
 * **API Externa:** IGDB API
 
-Desenvolvido por Thiago Vasque.
+Desenvolvido por Thiago Vasque e Lucas Mendes.
