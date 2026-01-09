@@ -1,7 +1,7 @@
 <nav x-data="{ open: false }" class="bg-[#0f111a] border-b-4 border-indigo-600/30 sticky top-0 z-50 shadow-[0_15px_50px_rgba(0,0,0,0.6)]">
     <div class="max-w-[1600px] mx-auto px-6 lg:px-10">
-        <div class="flex justify-between h-28"> 
-            
+        <div class="flex justify-between h-28">
+
             <div class="flex items-center gap-10">
                 <div class="shrink-0">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-5 group">
@@ -20,13 +20,13 @@
                 </div>
 
                 <div class="hidden xl:flex items-center h-full gap-4">
-                    <a href="{{ route('dashboard') }}" 
+                    <a href="{{ route('dashboard') }}"
                         class="flex items-center justify-center h-16 px-8 rounded-2xl text-[14px] font-black uppercase tracking-widest transition-all duration-300 border-2 
                         {{ request()->routeIs('dashboard') ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'border-gray-800 text-gray-500 hover:text-white hover:border-indigo-500 hover:bg-indigo-500/10' }}">
                         🏠 Painel
                     </a>
 
-                    <a href="{{ route('catalogo') }}" 
+                    <a href="{{ route('catalogo') }}"
                         class="flex items-center justify-center h-16 px-8 rounded-2xl text-[14px] font-black uppercase tracking-widest transition-all duration-300 border-2 
                         {{ request()->routeIs('catalogo') ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]' : 'border-gray-800 text-gray-500 hover:text-white hover:border-indigo-500 hover:bg-indigo-500/10' }}">
                         🕹️ Catálogo
@@ -35,17 +35,19 @@
             </div>
 
             <div class="hidden lg:flex items-center flex-1 justify-center px-16">
-                <div class="relative w-full max-w-2xl group">
-                    <input type="text" id="navGameQuery" 
-                        placeholder="QUAL SERÁ SEU PRÓXIMO DESAFIO?" 
-                        class="block w-full bg-[#05060a] border-2 border-gray-800 text-white pl-8 pr-20 py-5 rounded-2xl text-md font-black tracking-widest focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-800 uppercase"
-                        onkeypress="if(event.key === 'Enter') buscarJogosPelaNav()">
-                    
-                    <button onclick="buscarJogosPelaNav()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded-xl transition-all active:scale-90">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                <div class="relative w-full max-w-xl group">
+                    <div class="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                    </button>
+                    </div>
+                    <input type="text" id="userSearchInput"
+                        class="block w-full bg-[#05060a] border-2 border-gray-800 text-white pl-14 pr-10 py-4 rounded-2xl text-sm font-black tracking-widest focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-gray-800 uppercase italic"
+                        placeholder="BUSCAR PLAYERS NA REDE..."
+                        onkeyup="buscarPlayers(this.value)">
+                    
+                    <div id="userSearchResults" class="absolute w-full mt-3 bg-[#1a1d2e] border-2 border-indigo-500/30 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] hidden z-[100] overflow-hidden backdrop-blur-xl">
+                        </div>
                 </div>
             </div>
 
@@ -59,7 +61,7 @@
                                     <span class="text-[12px] font-black italic">{{ Auth::user()->level }}</span>
                                 </div>
                             </div>
-                            
+
                             <div class="text-left">
                                 <p class="text-[18px] font-black text-white uppercase tracking-tighter leading-none mb-1">{{ Auth::user()->name }}</p>
                                 <span class="bg-indigo-600 text-[10px] font-black px-2 py-0.5 rounded text-white italic uppercase">LVL {{ Auth::user()->level }}</span>

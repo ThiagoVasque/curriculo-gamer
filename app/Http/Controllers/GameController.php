@@ -37,10 +37,11 @@ class GameController extends Controller
             $token = $this->getIgdbToken();
 
             // Busca alguns jogos populares para preencher a página inicial
-            $body = "fields name, cover.url, rating, summary; 
-                 where cover != null & rating != null; 
-                 sort rating desc; 
-                 limit 6;";
+            // Procure a linha $body dentro de welcome e deixe assim:
+            $body = "fields name, cover.url, total_rating, summary, platforms.name; 
+         where cover != null & total_rating != null; 
+         sort total_rating desc; 
+         limit 6;";
 
             /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::withoutVerifying()->withHeaders([
@@ -71,11 +72,23 @@ class GameController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q');
+        $page = (int) $request->input('page', 1);
+        $perPage = 12;
+        $offset = ($page - 1) * $perPage;
+
         if (!$query) return response()->json([]);
 
         try {
             $token = $this->getIgdbToken();
-            $body = "search \"$query\"; fields name, cover.url, summary, involved_companies.company.name; limit 12;";
+
+            // Trocamos 'search' por 'where name ~' para permitir o 'sort'
+            // O rating_count desc garante que os mais populares/conhecidos venham primeiro
+            // Procure a linha $body dentro de search e deixe assim:
+            $body = "fields name, cover.url, summary, involved_companies.company.name, first_release_date, rating_count, total_rating, platforms.name; 
+         where name ~ *\"$query\"* & cover != null; 
+         sort rating_count desc; 
+         limit $perPage; 
+         offset $offset;";
 
             /** @var \Illuminate\Http\Client\Response $response */
             $response = Http::withoutVerifying()->withHeaders([
@@ -83,7 +96,6 @@ class GameController extends Controller
                 'Authorization' => 'Bearer ' . $token,
             ])->withBody($body, 'text/plain')->post('https://api.igdb.com/v4/games');
 
-            // Retornamos os dados originais (em inglês) sem o delay da tradução
             return response()->json($response->json());
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -102,25 +114,43 @@ class GameController extends Controller
             $offset = ($page - 1) * $perPage;
 
             $conditions = ["cover != null"];
-            $sort = "sort name asc;";
 
+            // 1. Se for "Mais Famosos" (Home do catálogo), mantém como está
             if ($genreName === 'Mais Famosos') {
                 $sort = "sort rating_count desc;";
                 $conditions[] = "rating_count != null";
-            } elseif ($genreName !== 'Todos') {
+            }
+            // 2. Se for uma categoria específica (Ação, RPG, etc.)
+            elseif ($genreName !== 'Todos') {
                 $map = ['Ação' => 4, 'RPG' => 12, 'FPS' => 5, 'Estratégia' => 15, 'Indie' => 32, 'Aventura' => 31];
                 if (isset($map[$genreName])) {
                     $conditions[] = "genres = ({$map[$genreName]})";
                 }
+                // ALTERAÇÃO AQUI: Mudamos de 'name asc' para 'rating_count desc'
+                // Isso traz os jogos mais populares daquela categoria primeiro
+                $sort = "sort rating_count desc;";
+            }
+            // 3. Se for "Todos", podemos manter alfabético ou por fama também
+            else {
+                $sort = "sort name asc;";
             }
 
+            // Se o usuário clicar em uma letra, a ordem alfabética faz mais sentido
             if ($letter && ctype_alpha($letter)) {
                 $upperLetter = strtoupper($letter);
                 $conditions[] = "name ~ \"$upperLetter\"*";
+                $sort = "sort name asc;";
             }
 
             $whereClause = "where " . implode(' & ', $conditions);
-            $body = "fields name, cover.url, genres.name, rating, summary, involved_companies.company.name, first_release_date; limit $perPage; offset $offset; $whereClause; $sort";
+
+            // No método catalogo do seu GameController
+            // No método catalogo do seu GameController
+            $body = "fields name, cover.url, genres.name, total_rating, rating_count, summary, involved_companies.company.name, first_release_date, platforms.name; 
+         $whereClause; 
+         $sort 
+         limit $perPage; 
+         offset $offset;";
 
             /** @var Response $response */
             $response = Http::withoutVerifying()->withHeaders([
@@ -176,22 +206,18 @@ class GameController extends Controller
             'summary'      => $request->summary,
             'developer'    => $request->developer,
             'release_year' => $request->release_year,
+            'platforms'    => $request->platforms,
             'status'       => $request->status,
             'rating'       => $request->rating,
             'review'       => $request->review,
         ]);
 
-    // LÓGICA DE EXP:
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        // Ex: 50 XP por adicionar, +100 se já marcar como zerado
         $xpGanho = ($request->status == 'zerado') ? 150 : 50;
-
-        // Agora o editor reconhecerá o addExp() perfeitamente
         $upou = $user->addExp($xpGanho);
 
-        return redirect()->back()->with('success', $upou ? 'LEVEL UP! Seu Currículo Gamer subiu de nível!' : 'Jogo adicionado! +' . $xpGanho . ' XP');
+        return redirect()->back()->with('success', $upou ? 'LEVEL UP!' : 'Jogo adicionado!');
     }
 
     public function update(Request $request, Game $game)
@@ -297,11 +323,11 @@ class GameController extends Controller
     // Método que o seu JavaScript (fetch) vai chamar no Modal
     public function traduzirNoModal(Request $request)
     {
-        // Pega do corpo da requisição (POST) em vez da URL
-        $texto = $request->input('texto');
+        // Mudamos de 'texto' para 'text' para bater com o seu JavaScript
+        $texto = $request->input('text');
 
         if (!$texto) {
-            return response()->json(['traducao' => '']);
+            return response()->json(['traducao' => 'Texto não recebido']);
         }
 
         $resultado = $this->traduzirTexto($texto);

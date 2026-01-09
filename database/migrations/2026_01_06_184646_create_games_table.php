@@ -11,13 +11,14 @@ return new class extends Migration
         Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('igdb_id'); 
+            $table->string('igdb_id');
             $table->string('title');
             $table->string('cover_url')->nullable();
-            
+
             // Atualizado: Incluindo 'Desejado' e 'jogando' para evitar o erro de truncamento
-            $table->enum('status', ['zerado', 'quero_jogar', 'favorito', 'jogando', 'Desejado'])->default('Desejado');
-            
+            $table->enum('status', ['zerado', 'quero_jogar', 'favorito', 'jogando', 'platinado'])
+                ->default('quero_jogar');
+                
             $table->integer('rating')->nullable();
             $table->integer('year_completed')->nullable();
             $table->string('developer')->nullable(); // Campo para o estúdio do jogo
@@ -25,6 +26,7 @@ return new class extends Migration
             $table->text('summary')->nullable(); // Descrição do jogo
             $table->text('review')->nullable();
             $table->timestamps();
+            $table->text('platforms')->nullable();
         });
     }
 

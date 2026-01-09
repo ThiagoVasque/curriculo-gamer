@@ -19,8 +19,9 @@ class Game extends Model
         'summary',
         'developer',
         'release_year',
-        'review', 
-        'user_id'
+        'review',
+        'user_id',
+        'platforms' // ADICIONE ISSO AQUI
     ];
 
     // Relacionamento: Um jogo pertence a um usuário
