@@ -42,7 +42,7 @@
             <div class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
                 <div class="bg-green-600/20 border border-green-500 text-green-400 px-4 py-3 rounded-lg flex justify-between items-center shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                     <div class="flex items-center gap-3">
-                        <span class="font-black uppercase italic text-sm">成就 (Sucesso):</span>
+                        <span class="font-black uppercase italic text-sm">(Sucesso):</span>
                         <p class="text-xs font-bold uppercase tracking-widest">{{ session('success') }}</p>
                     </div>
                     <button onclick="this.parentElement.parentElement.remove()" class="text-green-400 hover:text-white transition-colors">
