@@ -123,5 +123,5 @@
     </script>
 
     {{-- CHAMADA VITE CORRIGIDA: Adicionamos o game-logic aqui também --}}
-    @vite(['resources/js/game-logic.js', 'resources/js/catalogo-logic.js'])
+    @vite(['resources/js/game-logic.js'])
 </x-app-layout>
