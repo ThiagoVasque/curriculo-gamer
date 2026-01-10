@@ -50,7 +50,7 @@
                 <div class="grid grid-cols-2 gap-6">
                     <div>
                         <label class="text-gray-500 text-[10px] font-black uppercase mb-2 block tracking-widest italic">Status</label>
-                        <select name="status" id="modalStatus" class="w-full bg-[#0f111a] border border-gray-800 text-white rounded-xl p-3 outline-none focus:border-indigo-500 transition-all uppercase font-black text-xs italic tracking-widest">
+                        <select id="modal_game_status" name="status" class="bg-[#0f111a] border-gray-800 text-white rounded-lg w-full">
                             <option value="quero_jogar">⏳ Quero Jogar</option>
                             <option value="jogando">🎮 Jogando</option>
                             <option value="zerado">✅ Zerado</option>

@@ -15,6 +15,27 @@
     z-index: 0;
 }
 
+/* Animação que faz o brilho girar em torno do card */
+@keyframes girar-brilho-platinado {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Aplicando a classe que você já criou no Blade */
+.moldura-platinada {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+    /* Garante que o brilho não vaze */
+    padding: 4px;
+    /* Espessura da borda */
+}
+
 /* 2. O Brilho "Holográfico" Prateado (O feixe de luz) */
 .moldura-platinada::before {
     content: '';
@@ -59,14 +80,36 @@
 }
 
 /* 4. Animação de Rotação Estilo Pokémon */
-@keyframes girar-brilho-platinado {
-    from {
-        transform: rotate(0deg);
+@keyframes shine {
+    0% {
+        left: -100%;
     }
 
-    to {
-        transform: rotate(360deg);
+    100% {
+        left: 100%;
     }
+}
+
+@keyframes aura-platinada {
+    0% {
+        box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), 0 0 30px rgba(34, 211, 238, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(34, 211, 238, 0.7), 0 0 50px rgba(34, 211, 238, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), 0 0 30px rgba(34, 211, 238, 0.2);
+    }
+}
+
+
+/* Classe da Aura */
+.aura-platinada {
+    animation: aura-platinada 3s infinite ease-in-out;
+    /* Um leve brilho constante além da animação */
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* 5. Sombra Interna Profunda (Efeito 3D na Capa) */

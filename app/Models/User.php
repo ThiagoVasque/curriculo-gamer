@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Friendship; // Import necessário
+use App\Models\Game;       // Import necessário
 
 class User extends Authenticatable
 {
@@ -14,8 +16,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'xp',      // Adicionei aqui para permitir preenchimento
-        'level',   // Adicionei aqui também
+        'xp',
+        'level',
     ];
 
     protected $hidden = [
@@ -34,6 +36,15 @@ class User extends Authenticatable
     }
 
     /**
+     * Relacionamento para o SINO DE NOTIFICAÇÕES (O QUE FALTAVA)
+     */
+    public function pendingFriendRequests()
+    {
+        // friend_id é quem recebe o convite
+        return $this->hasMany(Friendship::class, 'friend_id')->where('status', 'pending');
+    }
+
+    /**
      * Relacionamento: Um usuário possui muitos jogos.
      */
     public function games()
@@ -43,23 +54,17 @@ class User extends Authenticatable
 
     /**
      * Sistema de Experiência (XP)
-     * Este é o método que estava faltando e causando o erro!
      */
     public function addExp($amount)
     {
-        $this->xp += $amount;
-        $this->level = floor($this->xp / 1000) + 1;
-        return $this->save();
+        // Se o amount for negativo (como no caso do update), o max(0) também protege aqui
+        $this->xp = max(0, $this->xp + $amount);
+        $this->save();
     }
 
     public function removeExp($amount)
     {
-        $this->xp -= $amount;
-        if ($this->xp < 0) $this->xp = 0;
-
-        // Recalcula o nível (se o XP cair muito, o level desce)
-        $this->level = floor($this->xp / 1000) + 1;
-
-        return $this->save();
+        $this->xp = max(0, $this->xp - $amount);
+        $this->save();
     }
 }

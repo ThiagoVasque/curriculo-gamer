@@ -29,4 +29,22 @@ class Game extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getXpValue()
+    {
+        $pesos = [
+            'platinado'   => 150,
+            'zerado'      => 100,
+            'jogando'     => 10,
+            'quero_jogar' => 0,
+        ];
+
+        $valor = $pesos[$this->status] ?? 0;
+
+        if (!empty($this->review)) {
+            $valor += 30;
+        }
+
+        return $valor;
+    }
 }

@@ -17,18 +17,30 @@ class GameController extends Controller
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        // Agora o editor vai reconhecer o método games() sem erro
         $myGames = $user->games()->latest()->get();
 
-        // Estatísticas para os cards
+        // Lógica de amigos revisada e segura
+        $amigos = \App\Models\Friendship::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+                ->orWhere('friend_id', $user->id);
+        })
+            ->where('status', 'accepted')
+            ->with(['user', 'friend']) // Eager loading para evitar consultas extras
+            ->get()
+            ->map(function ($f) use ($user) {
+                // Retorna o objeto do amigo, garantindo que não seja nulo
+                return $f->user_id === $user->id ? $f->friend : $f->user;
+            })
+            ->filter(); // Remove qualquer valor nulo que possa ter sobrado
+
         $stats = [
             'total' => $myGames->count(),
             'zerados' => $myGames->where('status', 'zerado')->count(),
             'jogando' => $myGames->where('status', 'jogando')->count(),
+            'amigos_count' => $amigos->count(),
         ];
 
-        return view('dashboard', compact('myGames', 'stats'));
+        return view('dashboard', compact('myGames', 'stats', 'amigos'));
     }
 
     public function welcome()
@@ -71,7 +83,7 @@ class GameController extends Controller
 
     public function search(Request $request)
     {
-        $query = $request->input('q');
+        $query = $request->input('search');
         $page = (int) $request->input('page', 1);
         $perPage = 12;
         $offset = ($page - 1) * $perPage;
@@ -81,22 +93,26 @@ class GameController extends Controller
         try {
             $token = $this->getIgdbToken();
 
-            // Trocamos 'search' por 'where name ~' para permitir o 'sort'
-            // O rating_count desc garante que os mais populares/conhecidos venham primeiro
-            // Procure a linha $body dentro de search e deixe assim:
-            $body = "fields name, cover.url, summary, involved_companies.company.name, first_release_date, rating_count, total_rating, platforms.name; 
-         where name ~ *\"$query\"* & cover != null; 
-         sort rating_count desc; 
-         limit $perPage; 
-         offset $offset;";
+            // Corpo da requisição sem quebras de linha para evitar erro de sintaxe na IGDB
+            $body = "fields name, cover.url, summary, involved_companies.company.name, first_release_date, rating_count, total_rating, platforms.name; where name ~ *\"$query\"* & cover != null; sort rating_count desc; limit $perPage; offset $offset;";
 
-            /** @var \Illuminate\Http\Client\Response $response */
+            /** @var Response $response */
             $response = Http::withoutVerifying()->withHeaders([
                 'Client-ID' => (string) env('IGDB_CLIENT_ID'),
                 'Authorization' => 'Bearer ' . $token,
             ])->withBody($body, 'text/plain')->post('https://api.igdb.com/v4/games');
 
-            return response()->json($response->json());
+            // Agora o editor reconhecerá failed(), status(), etc.
+            if ($response->failed()) {
+                return response()->json([
+                    'error' => 'Erro na IGDB',
+                    'details' => $response->body()
+                ], $response->status());
+            }
+
+            $data = $response->json();
+
+            return response()->json(is_array($data) ? $data : []);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
@@ -214,10 +230,15 @@ class GameController extends Controller
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        $xpGanho = ($request->status == 'zerado') ? 150 : 50;
+
+        // --- CORREÇÃO AQUI ---
+        // Em vez de: ($request->status == 'zerado') ? 150 : 50;
+        // Usamos o método centralizado do Model:
+        $xpGanho = $game->getXpValue();
+
         $upou = $user->addExp($xpGanho);
 
-        return redirect()->back()->with('success', $upou ? 'LEVEL UP!' : 'Jogo adicionado!');
+        return redirect()->back()->with('success', $upou ? "LEVEL UP! +{$xpGanho} XP" : "Jogo adicionado! +{$xpGanho} XP");
     }
 
     public function update(Request $request, Game $game)
@@ -232,60 +253,54 @@ class GameController extends Controller
             'review' => 'nullable|string',
         ]);
 
-        // Guarda o status antigo antes de atualizar
-        $statusAntigo = $game->status;
+        // 1. Captura o valor de XP ATUAL do jogo antes da mudança
+        $xpAntigo = $game->getXpValue();
 
-        // Atualiza os dados
+        // 2. Atualiza os dados no banco
         $game->update([
             'status' => $request->status,
             'rating' => $request->rating,
             'review' => $request->review,
         ]);
 
+        // 3. Captura o NOVO valor de XP do jogo (o Model já recalcula com o novo status/review)
+        $game->refresh(); // Garante que o Model pegue os dados recém-salvos
+        $xpNovo = $game->getXpValue();
+
+        // 4. Calcula a diferença
+        $diferencaXP = $xpNovo - $xpAntigo;
+
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        $mensagem = 'Progresso salvo!';
-
-        // LÓGICA DE RECOMPENSA DINÂMICA
-        // Se o jogo NÃO era zerado e AGORA FOI zerado, ganha +100 XP
-        if ($statusAntigo !== 'zerado' && $request->status === 'zerado') {
-            $user->addExp(100);
-            $mensagem = 'Boa! Você zerou +1 jogo e ganhou 100 XP!';
+        if ($diferencaXP !== 0) {
+            // Se for positivo, soma. Se for negativo, o addExp subtrai.
+            $user->addExp($diferencaXP);
         }
 
-        // Se ele escreveu uma review pela primeira vez, ganha +30 XP
-        if (empty($game->getOriginal('review')) && !empty($request->review)) {
-            $user->addExp(30);
-            $mensagem = 'Review publicada! +30 XP de Crítico Gamer!';
-        }
+        $mensagem = $diferencaXP >= 0
+            ? "Progresso salvo! +{$diferencaXP} XP obtido."
+            : "Progresso atualizado! XP ajustado em {$diferencaXP}.";
 
         return redirect()->back()->with('success', $mensagem);
     }
 
     public function destroy(Game $game)
     {
-        // 1. Segurança: Verifica se o jogo é do usuário logado
-        // Usamos Auth::id() para ser mais explícito para o editor
-        if ($game->user_id !== \Illuminate\Support\Facades\Auth::id()) {
+        if ($game->user_id !== Auth::id()) {
             abort(403);
         }
 
-        // 2. Calcula quanto XP esse jogo valia
-        $xpParaRemover = ($game->status === 'zerado') ? 150 : 50;
-
-        if (!empty($game->review)) {
-            $xpParaRemover += 30;
-        }
-
-    // 3. Remove o XP do usuário
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Agora o removeExp() será reconhecido sem erros
+        // 1. Pergunta ao model quanto o jogo vale no momento da exclusão
+        $xpParaRemover = $game->getXpValue();
+
+        // 2. Remove o XP total (Status + Review)
         $user->removeExp($xpParaRemover);
 
-        // 4. Deleta o registro do banco
+        // 3. Deleta
         $game->delete();
 
         return redirect()->back()->with('success', "Jogo removido! Você perdeu {$xpParaRemover} XP.");

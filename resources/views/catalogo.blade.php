@@ -46,52 +46,52 @@
             <div class="bg-[#1a1d2e] p-6 rounded-3xl border border-gray-800 shadow-2xl">
                 <div id="searchResults" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     @forelse ($games as $game)
-                        {{-- Logica de processamento de dados do game mantida --}}
-                        @php
-                            $coverUrl = isset($game['cover']['url']) ? str_replace('t_thumb', 't_cover_big', $game['cover']['url']) : 'https://via.placeholder.com/400x600?text=Sem+Capa';
-                            if (strpos($coverUrl, '//') === 0) $coverUrl = 'https:' . $coverUrl;
-                            $platNames = isset($game['platforms']) ? array_column($game['platforms'], 'name') : [];
-                            $platforms = !empty($platNames) ? implode(', ', $platNames) : 'N/A';
-                            $rating = isset($game['total_rating']) ? round($game['total_rating']) : 0;
+                    {{-- Logica de processamento de dados do game mantida --}}
+                    @php
+                    $coverUrl = isset($game['cover']['url']) ? str_replace('t_thumb', 't_cover_big', $game['cover']['url']) : 'https://via.placeholder.com/400x600?text=Sem+Capa';
+                    if (strpos($coverUrl, '//') === 0) $coverUrl = 'https:' . $coverUrl;
+                    $platNames = isset($game['platforms']) ? array_column($game['platforms'], 'name') : [];
+                    $platforms = !empty($platNames) ? implode(', ', $platNames) : 'N/A';
+                    $rating = isset($game['total_rating']) ? round($game['total_rating']) : 0;
 
-                            $gameData = json_encode([
-                                'title' => str_replace('"', '', $game['name']),
-                                'cover_url' => $coverUrl,
-                                'summary' => str_replace(["\r", "\n", '"'], '', $game['summary'] ?? 'Sem sinopse.'),
-                                'developer' => str_replace('"', '', $game['involved_companies'][0]['company']['name'] ?? 'N/A'),
-                                'release_year' => isset($game['first_release_date']) ? date('Y', $game['first_release_date']) : 'N/A',
-                                'igdb_id' => $game['id'],
-                                'first_release_date' => $game['first_release_date'] ?? '',
-                                'platforms' => $platforms,
-                                'rating' => $rating
-                            ]);
-                        @endphp
+                    $gameData = json_encode([
+                    'title' => str_replace('"', '', $game['name']),
+                    'cover_url' => $coverUrl,
+                    'summary' => str_replace(["\r", "\n", '"'], '', $game['summary'] ?? 'Sem sinopse.'),
+                    'developer' => str_replace('"', '', $game['involved_companies'][0]['company']['name'] ?? 'N/A'),
+                    'release_year' => isset($game['first_release_date']) ? date('Y', $game['first_release_date']) : 'N/A',
+                    'igdb_id' => $game['id'],
+                    'first_release_date' => $game['first_release_date'] ?? '',
+                    'platforms' => $platforms,
+                    'rating' => $rating
+                    ]);
+                    @endphp
 
-                        <div onclick="abrirModalParaAdicionar('{{ addslashes($gameData) }}')"
-                            class="group bg-[#0f111a] rounded-xl overflow-hidden border border-gray-800 hover:border-indigo-500 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer flex flex-col relative">
-                            <div class="aspect-[3/4] relative overflow-hidden bg-black">
-                                <img src="{{ $coverUrl }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                @if($rating)
-                                <div class="rating-badge-container">
-                                    <div class="rating-circle">
-                                        <span class="rating-value">{{ $rating }}</span>
-                                        <span class="rating-label">IGDB</span>
-                                    </div>
-                                </div>
-                                @endif
-                                <div class="absolute inset-0 bg-indigo-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <span class="bg-white text-indigo-600 text-[9px] font-black px-2 py-1 rounded uppercase italic shadow-2xl">+ Adicionar</span>
+                    <div onclick="abrirModalParaAdicionar('{{ addslashes($gameData) }}')"
+                        class="group bg-[#0f111a] rounded-xl overflow-hidden border border-gray-800 hover:border-indigo-500 transition-all duration-300 hover:-translate-y-1 shadow-lg cursor-pointer flex flex-col relative">
+                        <div class="aspect-[3/4] relative overflow-hidden bg-black">
+                            <img src="{{ $coverUrl }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            @if($rating)
+                            <div class="rating-badge-container">
+                                <div class="rating-circle">
+                                    <span class="rating-value">{{ $rating }}</span>
+                                    <span class="rating-label">IGDB</span>
                                 </div>
                             </div>
-                            <div class="p-2 text-center">
-                                <h4 class="text-white font-bold truncate text-[11px] uppercase tracking-tighter italic">{{ $game['name'] }}</h4>
-                                <p class="text-gray-500 font-black text-[9px] uppercase tracking-widest mt-1">
-                                    {{ isset($game['first_release_date']) ? date('Y', $game['first_release_date']) : 'N/A' }}
-                                </p>
+                            @endif
+                            <div class="absolute inset-0 bg-indigo-600/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <span class="bg-white text-indigo-600 text-[9px] font-black px-2 py-1 rounded uppercase italic shadow-2xl">+ Adicionar</span>
                             </div>
                         </div>
+                        <div class="p-2 text-center">
+                            <h4 class="text-white font-bold truncate text-[11px] uppercase tracking-tighter italic">{{ $game['name'] }}</h4>
+                            <p class="text-gray-500 font-black text-[9px] uppercase tracking-widest mt-1">
+                                {{ isset($game['first_release_date']) ? date('Y', $game['first_release_date']) : 'N/A' }}
+                            </p>
+                        </div>
+                    </div>
                     @empty
-                        <div class="col-span-full py-20 text-center uppercase tracking-widest text-gray-600 font-bold">Nenhum game encontrado.</div>
+                    <div class="col-span-full py-20 text-center uppercase tracking-widest text-gray-600 font-bold">Nenhum game encontrado.</div>
                     @endforelse
                 </div>
 
@@ -118,7 +118,7 @@
             csrfToken: '{{ csrf_token() }}',
             routeStore: '{{ route("games.store") }}',
             routeTraduzir: '/traduzir',
-            routeSearch: '/catalogo/search'
+            routeSearch: '{{ route("catalogo.search") }}'
         };
     </script>
 

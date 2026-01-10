@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('friendships', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Quem enviou
+            $table->foreignId('friend_id')->constrained('users')->onDelete('cascade'); // Quem recebe
+            $table->enum('status', ['pending', 'accepted', 'declined'])->default('pending');
             $table->timestamps();
         });
     }
