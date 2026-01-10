@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\App;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,7 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
    public function boot()
 {
-    if (config('app.env') === 'production' || config('app.env') === 'railway') {
+    // Força HTTPS se estiver em produção (Railway)
+    if (App::environment('production') || env('RAILWAY_ENVIRONMENT')) {
         URL::forceScheme('https');
     }
 }
